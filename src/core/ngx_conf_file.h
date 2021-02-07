@@ -75,12 +75,13 @@
 
 
 struct ngx_command_s {
-    ngx_str_t             name;
-    ngx_uint_t            type;
+    ngx_str_t             name; // 配置项名称
+    ngx_uint_t            type; // 配置项类型
+    /* 设置配置项函数 */
     char               *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
     ngx_uint_t            conf;
     ngx_uint_t            offset;
-    void                 *post;
+    void                 *post; // 配置项读取后的处理方法
 };
 
 #define ngx_null_command  { ngx_null_string, 0, NULL, 0, 0, NULL }

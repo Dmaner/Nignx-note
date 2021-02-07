@@ -16,18 +16,18 @@
 typedef struct ngx_list_part_s  ngx_list_part_t;
 
 struct ngx_list_part_s {
-    void             *elts;
-    ngx_uint_t        nelts;
+    void             *elts;     // 数组起始地址
+    ngx_uint_t        nelts;    // 元素个数
     ngx_list_part_t  *next;
 };
 
 
 typedef struct {
-    ngx_list_part_t  *last;
-    ngx_list_part_t   part;
-    size_t            size;
-    ngx_uint_t        nalloc;
-    ngx_pool_t       *pool;
+    ngx_list_part_t  *last;     // 尾元素
+    ngx_list_part_t   part;     // 首元素
+    size_t            size;     // ngx_list_part_t元素最大字节数
+    ngx_uint_t        nalloc;   // ngx_list_part_t.nelts <= nalloc
+    ngx_pool_t       *pool;     // 内存池
 } ngx_list_t;
 
 

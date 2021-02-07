@@ -220,8 +220,8 @@
 
 
 struct ngx_module_s {
-    ngx_uint_t            ctx_index;
-    ngx_uint_t            index;
+    ngx_uint_t            ctx_index;    // 当先模块在这一类模块的序号
+    ngx_uint_t            index;        // 模块数组序号
 
     char                 *name;
 
@@ -231,9 +231,9 @@ struct ngx_module_s {
     ngx_uint_t            version;
     const char           *signature;
 
-    void                 *ctx;
-    ngx_command_t        *commands;
-    ngx_uint_t            type;
+    void                 *ctx;          // 指向这一类模块的公共接口
+    ngx_command_t        *commands;     // 处理nginx.conf配置项
+    ngx_uint_t            type;         // 模块类型
 
     ngx_int_t           (*init_master)(ngx_log_t *log);
 
