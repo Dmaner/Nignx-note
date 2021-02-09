@@ -20,8 +20,7 @@
 ├── ngx_crc.h
 ├── ngx_crypt.c
 ├── ngx_crypt.h
-├── ngx_cycle.c
-├── ngx_cycle.h
+├── ngx_cycle.{c, h} // Nginx各进程的主要工作流程都是以ngx_cycle_t结构体作为基础的
 ├── ngx_file.c
 ├── ngx_file.h
 ├── ngx_hash.{c, h} // nginx键值对类型

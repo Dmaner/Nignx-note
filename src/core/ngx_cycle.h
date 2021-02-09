@@ -37,52 +37,51 @@ struct ngx_shm_zone_s {
 
 
 struct ngx_cycle_s {
-    void                  ****conf_ctx;
-    ngx_pool_t               *pool;
-
-    ngx_log_t                *log;
+    void                  ****conf_ctx;         /* 保存所有模块配置项的指针数组 */
+    ngx_pool_t               *pool;             /* 内存池 */
+    ngx_log_t                *log;              /* 日志 */
     ngx_log_t                 new_log;
 
-    ngx_uint_t                log_use_stderr;  /* unsigned  log_use_stderr:1; */
+    ngx_uint_t                log_use_stderr;   /* unsigned  log_use_stderr:1; */
 
-    ngx_connection_t        **files;
-    ngx_connection_t         *free_connections;
-    ngx_uint_t                free_connection_n;
+    ngx_connection_t        **files;            /* 保存文件句柄数组 */
+    ngx_connection_t         *free_connections; /* 可用连接池 */
+    ngx_uint_t                free_connection_n;/* 连接池总数 */
 
     ngx_module_t            **modules;
     ngx_uint_t                modules_n;
     ngx_uint_t                modules_used;    /* unsigned  modules_used:1; */
 
-    ngx_queue_t               reusable_connections_queue;
-    ngx_uint_t                reusable_connections_n;
-    time_t                    connections_reuse_time;
+    ngx_queue_t               reusable_connections_queue;/* 可复用连接队列 */
+    ngx_uint_t                reusable_connections_n;   /* 队列大小 */
+    time_t                    connections_reuse_time;  
 
-    ngx_array_t               listening;
-    ngx_array_t               paths;
+    ngx_array_t               listening;        /* 存储监听端口 */
+    ngx_array_t               paths;            /* 存储所有需要的文件路径 */
 
     ngx_array_t               config_dump;
     ngx_rbtree_t              config_dump_rbtree;
     ngx_rbtree_node_t         config_dump_sentinel;
 
-    ngx_list_t                open_files;
-    ngx_list_t                shared_memory;
+    ngx_list_t                open_files;       /* 打开的所有文件 */
+    ngx_list_t                shared_memory;    /* 共享内存 */
 
-    ngx_uint_t                connection_n;
-    ngx_uint_t                files_n;
+    ngx_uint_t                connection_n;     /* 可用连接池总数 */
+    ngx_uint_t                files_n;          /* 文件句柄数组总数 */
 
-    ngx_connection_t         *connections;
-    ngx_event_t              *read_events;
-    ngx_event_t              *write_events;
+    ngx_connection_t         *connections;      /* 指向当前进程的所有连接对象 */
+    ngx_event_t              *read_events;      /* 指向当前进程的所有读事件 */
+    ngx_event_t              *write_events;     /* 指向当前进程的所有写事件 */
 
-    ngx_cycle_t              *old_cycle;
+    ngx_cycle_t              *old_cycle;        /* init时，需要old_cycle */
 
-    ngx_str_t                 conf_file;
-    ngx_str_t                 conf_param;
-    ngx_str_t                 conf_prefix;
-    ngx_str_t                 prefix;
-    ngx_str_t                 error_log;
-    ngx_str_t                 lock_file;
-    ngx_str_t                 hostname;
+    ngx_str_t                 conf_file;        /* 配置文件路径 */
+    ngx_str_t                 conf_param;       /* 处理配置文件的参数 */
+    ngx_str_t                 conf_prefix;      /* nginx.conf安装路径 */
+    ngx_str_t                 prefix;           /* nginx安装路径 */
+    ngx_str_t                 error_log;        /* 错误日志 */
+    ngx_str_t                 lock_file;        /* 用于同步文件锁 */
+    ngx_str_t                 hostname;         /* 主机名 */
 };
 
 
@@ -124,7 +123,7 @@ typedef struct {
 
 #define ngx_is_init_cycle(cycle)  (cycle->conf_ctx == NULL)
 
-
+/* 初始化ngx_cycle_t */
 ngx_cycle_t *ngx_init_cycle(ngx_cycle_t *old_cycle);
 ngx_int_t ngx_create_pidfile(ngx_str_t *name, ngx_log_t *log);
 void ngx_delete_pidfile(ngx_cycle_t *cycle);

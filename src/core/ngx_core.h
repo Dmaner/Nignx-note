@@ -12,14 +12,14 @@
 #include <ngx_config.h>
 
 
-typedef struct ngx_module_s          ngx_module_t;
-typedef struct ngx_conf_s            ngx_conf_t;
-typedef struct ngx_cycle_s           ngx_cycle_t;
-typedef struct ngx_pool_s            ngx_pool_t;
+typedef struct ngx_module_s          ngx_module_t;          /* nginx模块 */
+typedef struct ngx_conf_s            ngx_conf_t;            /* nginx参数 */
+typedef struct ngx_cycle_s           ngx_cycle_t;           /* nginx各进程的主要工作流程都是以ngx_cycle_t结构体作为基础的 */
+typedef struct ngx_pool_s            ngx_pool_t;            /* nginx内存池 */
 typedef struct ngx_chain_s           ngx_chain_t;
 typedef struct ngx_log_s             ngx_log_t;
 typedef struct ngx_open_file_s       ngx_open_file_t;
-typedef struct ngx_command_s         ngx_command_t;
+typedef struct ngx_command_s         ngx_command_t;         
 typedef struct ngx_file_s            ngx_file_t;
 typedef struct ngx_event_s           ngx_event_t;
 typedef struct ngx_event_aio_s       ngx_event_aio_t;

@@ -40,28 +40,29 @@ struct ngx_pool_cleanup_s {
 
 typedef struct ngx_pool_large_s  ngx_pool_large_t;
 
+/* 大内存池链表 */
 struct ngx_pool_large_s {
     ngx_pool_large_t     *next;
-    void                 *alloc;
+    void                 *alloc;    /* 指向大块内存 */
 };
 
-
+/* 小块内存链表 */
 typedef struct {
-    u_char               *last;
-    u_char               *end;
+    u_char               *last;     /* 空闲小内存首地址 */
+    u_char               *end;      /* 小内存尾部 */
     ngx_pool_t           *next;
     ngx_uint_t            failed;
 } ngx_pool_data_t;
 
 
 struct ngx_pool_s {
-    ngx_pool_data_t       d;
-    size_t                max;
-    ngx_pool_t           *current;
-    ngx_chain_t          *chain;
-    ngx_pool_large_t     *large;
-    ngx_pool_cleanup_t   *cleanup;
-    ngx_log_t            *log;
+    ngx_pool_data_t       d;        /* 小块内存池链表 */
+    size_t                max;      /* 评估申请内存属于大块还是小块 */
+    ngx_pool_t           *current;  /* 遍历时可分配第一个内存池 */
+    ngx_chain_t          *chain;    
+    ngx_pool_large_t     *large;    /* 大块内存池链表 */
+    ngx_pool_cleanup_t   *cleanup;  /* 待清理内存链表 */
+    ngx_log_t            *log;      /* 日志 */
 };
 
 
@@ -71,18 +72,19 @@ typedef struct {
     ngx_log_t            *log;
 } ngx_pool_cleanup_file_t;
 
-
+/* 创建，销毁，重置内存池 */
 ngx_pool_t *ngx_create_pool(size_t size, ngx_log_t *log);
 void ngx_destroy_pool(ngx_pool_t *pool);
 void ngx_reset_pool(ngx_pool_t *pool);
 
+/* 基于内存池的分配和释放 */
 void *ngx_palloc(ngx_pool_t *pool, size_t size);
 void *ngx_pnalloc(ngx_pool_t *pool, size_t size);
 void *ngx_pcalloc(ngx_pool_t *pool, size_t size);
 void *ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment);
 ngx_int_t ngx_pfree(ngx_pool_t *pool, void *p);
 
-
+/* 内存池销毁时的销毁其他同步资源 */
 ngx_pool_cleanup_t *ngx_pool_cleanup_add(ngx_pool_t *p, size_t size);
 void ngx_pool_run_cleanup_file(ngx_pool_t *p, ngx_fd_t fd);
 void ngx_pool_cleanup_file(void *data);

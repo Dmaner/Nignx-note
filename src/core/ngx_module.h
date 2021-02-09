@@ -235,15 +235,13 @@ struct ngx_module_s {
     ngx_command_t        *commands;     // 处理nginx.conf配置项
     ngx_uint_t            type;         // 模块类型
 
+    /* 七个核心的回调函数 */
     ngx_int_t           (*init_master)(ngx_log_t *log);
-
     ngx_int_t           (*init_module)(ngx_cycle_t *cycle);
-
     ngx_int_t           (*init_process)(ngx_cycle_t *cycle);
     ngx_int_t           (*init_thread)(ngx_cycle_t *cycle);
     void                (*exit_thread)(ngx_cycle_t *cycle);
     void                (*exit_process)(ngx_cycle_t *cycle);
-
     void                (*exit_master)(ngx_cycle_t *cycle);
 
     uintptr_t             spare_hook0;
@@ -256,7 +254,7 @@ struct ngx_module_s {
     uintptr_t             spare_hook7;
 };
 
-
+/* nginx核心模块 */
 typedef struct {
     ngx_str_t             name;
     void               *(*create_conf)(ngx_cycle_t *cycle);

@@ -36,7 +36,8 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 ## 学习笔记
 
 - Nginx 开发HTTP模块
-- 
+- Nginx 基础架构
+
 
 ## 参考
 
