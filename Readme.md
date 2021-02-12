@@ -30,9 +30,9 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 
 ## 代码结构
 
-- [核心模块](src/core)
-- [事件模块](src/event)
-- [HTTP模块相关代码](./src/http)
+- [核心模块](src/core/Readme.md)
+- [事件模块](src/event/Readme.md)
+- [HTTP模块](./src/http)
 
 ## 学习笔记
 

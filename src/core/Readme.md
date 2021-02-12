@@ -4,8 +4,9 @@
 
 正是`nginx`模块结构体`ngx_module_t`设计简单，以及所有模块都遵循`ngx_module_t`的接口规范，使得`nginx`拥有优秀的模块化设计和灵活性
 
-- 五大类型的模块（核心模块，配置模块，HTTP模块，Mail模块，事件模块）对`ngx_module_t`的接口实现以及联系
+- `ngx_module_t`模块的实现相应模块防水
 ![ngx_module_t对各类模块的具象化方式](../../images/ngx_module_t.png)
+- 五大类型的模块（核心模块，配置模块，HTTP模块，Mail模块，事件模块）对`ngx_module_t`的联系
 ![五种模块的联系](../../images/modules_realtiosn.png)
 - 源码实现
 
