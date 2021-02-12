@@ -48,7 +48,7 @@ struct ngx_cycle_s {
     ngx_connection_t         *free_connections; /* 可用连接池 */
     ngx_uint_t                free_connection_n;/* 连接池总数 */
 
-    ngx_module_t            **modules;
+    ngx_module_t            **modules;          /* 存放各种模块的数组 */
     ngx_uint_t                modules_n;
     ngx_uint_t                modules_used;    /* unsigned  modules_used:1; */
 

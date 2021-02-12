@@ -16,14 +16,15 @@
 typedef struct ngx_listening_s  ngx_listening_t;
 
 struct ngx_listening_s {
+    /* socket套接字句柄 */
     ngx_socket_t        fd;
 
+    /* socket套接字相关参数 */
     struct sockaddr    *sockaddr;
     socklen_t           socklen;    /* size of sockaddr */
     size_t              addr_text_max_len;
     ngx_str_t           addr_text;
-
-    int                 type;
+    int                 type;       /* 套接字类型 */
 
     int                 backlog;
     int                 rcvbuf;
@@ -34,8 +35,7 @@ struct ngx_listening_s {
     int                 keepcnt;
 #endif
 
-    /* handler of accepted connection */
-    ngx_connection_handler_pt   handler;
+    ngx_connection_handler_pt   handler;    /* TCP连接成功的回调函数 */
 
     void               *servers;  /* array of ngx_http_in_addr_t, for example */
 
@@ -121,29 +121,24 @@ typedef enum {
 #define NGX_HTTP_V2_BUFFERED   0x02
 
 
+/* 被动连接 */
 struct ngx_connection_s {
-    void               *data;
-    ngx_event_t        *read;
-    ngx_event_t        *write;
-
-    ngx_socket_t        fd;
-
-    ngx_recv_pt         recv;
-    ngx_send_pt         send;
-    ngx_recv_chain_pt   recv_chain;
+    void               *data;   /* 当连接未使用时，相当于空闲连接链表的next指针 */
+    ngx_event_t        *read;   /* 链接对应的读事件 */
+    ngx_event_t        *write;  /* 链接对应的写事件 */
+    ngx_socket_t        fd;     /* socket套接字句柄 */
+    ngx_recv_pt         recv;   /* 直接接受字符流的方法 */
+    ngx_send_pt         send;   /* 直接发送字符流的方法 */
+    ngx_recv_chain_pt   recv_chain; 
     ngx_send_chain_pt   send_chain;
+    ngx_listening_t    *listening;  /* 这个连接对应的ngx_listening_t对象 */
+    off_t               sent;   /* 这个连接已发出的字节数 */
+    ngx_log_t          *log;    
+    ngx_pool_t         *pool;   /* 内存池 */
+    int                 type;   
 
-    ngx_listening_t    *listening;
-
-    off_t               sent;
-
-    ngx_log_t          *log;
-
-    ngx_pool_t         *pool;
-
-    int                 type;
-
-    struct sockaddr    *sockaddr;
+    /* tcp连接相关套接字参数 */
+    struct sockaddr    *sockaddr;   
     socklen_t           socklen;
     ngx_str_t           addr_text;
 
@@ -158,16 +153,13 @@ struct ngx_connection_s {
     struct sockaddr    *local_sockaddr;
     socklen_t           local_socklen;
 
-    ngx_buf_t          *buffer;
+    ngx_buf_t          *buffer; /* 接受缓冲区 */
+    ngx_queue_t         queue;  /* 表示可重用的连接 */
+    ngx_atomic_uint_t   number; /* 该连接使用次数 */
+    ngx_uint_t          requests;   /* 处理请求次数 */
 
-    ngx_queue_t         queue;
-
-    ngx_atomic_uint_t   number;
-
-    ngx_uint_t          requests;
-
-    unsigned            buffered:8;
-
+    /* 标志位 */
+    unsigned            buffered:8;     
     unsigned            log_error:3;     /* ngx_connection_log_error_e */
 
     unsigned            timedout:1;

@@ -218,10 +218,10 @@
 
 #define NGX_MODULE_V1_PADDING  0, 0, 0, 0, 0, 0, 0, 0
 
-
+/* nginx模块接口 */
 struct ngx_module_s {
     ngx_uint_t            ctx_index;    // 当先模块在这一类模块的序号
-    ngx_uint_t            index;        // 模块数组序号
+    ngx_uint_t            index;        // 总的模块数组序号
 
     char                 *name;
 
@@ -272,6 +272,7 @@ ngx_int_t ngx_add_module(ngx_conf_t *cf, ngx_str_t *file,
     ngx_module_t *module, char **order);
 
 
+/* nginx模块数组 */
 extern ngx_module_t  *ngx_modules[];
 extern ngx_uint_t     ngx_max_module;
 

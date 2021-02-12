@@ -28,47 +28,26 @@ typedef struct {
 
 
 struct ngx_event_s {
-    void            *data;
+    void            *data;  /* 事件相关对象，例如ngx_connection_t链接对象 */
 
-    unsigned         write:1;
-
-    unsigned         accept:1;
-
-    /* used to detect the stale events in kqueue and epoll */
-    unsigned         instance:1;
-
-    /*
-     * the event was passed or would be passed to a kernel;
-     * in aio mode - operation was posted.
-     */
-    unsigned         active:1;
-
-    unsigned         disabled:1;
-
-    /* the ready event; in aio mode 0 means that no operation can be posted */
-    unsigned         ready:1;
-
-    unsigned         oneshot:1;
-
-    /* aio operation is complete */
-    unsigned         complete:1;
-
-    unsigned         eof:1;
-    unsigned         error:1;
-
-    unsigned         timedout:1;
-    unsigned         timer_set:1;
-
-    unsigned         delayed:1;
-
-    unsigned         deferred_accept:1;
-
-    /* the pending eof reported by kqueue, epoll or in aio chain operation */
-    unsigned         pending_eof:1;
-
+    /* 各种标志位 */
+    unsigned         write:1;       /* 事件可写，通常表示在TCP链接状态下可以发送数据包 */
+    unsigned         accept:1;      /* 表示此事件可以建立新的连接 */
+    unsigned         instance:1;    /* 表示事件是否过期 */
+    unsigned         active:1;      /* 事件是否活跃 */
+    unsigned         disabled:1;    /* 是否禁用事件 */
+    unsigned         ready:1;       /* 事件是否就绪 */
+    unsigned         oneshot:1;     /* 在kqueue, eventport使用 */
+    unsigned         complete:1;    /* aio事件是否完成 */
+    unsigned         eof:1;         /* 当前字符流是否结束 */
+    unsigned         error:1;       /* 事件处理是否出错 */
+    unsigned         timedout:1;    /* 事件是否超时 */
+    unsigned         timer_set:1;   /* 事件是否存在于定时器中 */
+    unsigned         delayed:1;     /* 是否延迟处理 */
+    unsigned         deferred_accept:1; /* 延迟建立tcp连接 */
+    unsigned         pending_eof:1; /* the pending eof reported by kqueue, epoll or in aio chain operation */
     unsigned         posted:1;
-
-    unsigned         closed:1;
+    unsigned         closed:1;      /* 事件是否关闭 */
 
     /* to test on worker exit */
     unsigned         channel:1;
@@ -76,6 +55,7 @@ struct ngx_event_s {
 
     unsigned         cancelable:1;
 
+/* kqueue事件处理模块需要的参数 */
 #if (NGX_HAVE_KQUEUE)
     unsigned         kq_vnode:1;
 
@@ -100,19 +80,16 @@ struct ngx_event_s {
 
     int              available;
 
-    ngx_event_handler_pt  handler;
+    ngx_event_handler_pt  handler;      /* 事件发生调用的函数 */
 
-
+/* window下事件驱动模块 */
 #if (NGX_HAVE_IOCP)
     ngx_event_ovlp_t ovlp;
 #endif
 
     ngx_uint_t       index;
-
-    ngx_log_t       *log;
-
-    ngx_rbtree_node_t   timer;
-
+    ngx_log_t       *log;           /* 记录error_log日志 */
+    ngx_rbtree_node_t   timer;      /* 定时器节点 */
     /* the posted queue */
     ngx_queue_t      queue;
 
@@ -168,21 +145,27 @@ struct ngx_event_aio_s {
 
 
 typedef struct {
+    /* 添加/删除事件 */
     ngx_int_t  (*add)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
     ngx_int_t  (*del)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
 
+    /* 启用/关闭事件 */
     ngx_int_t  (*enable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
     ngx_int_t  (*disable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
 
+    /* 事件添加/删除链接 */
     ngx_int_t  (*add_conn)(ngx_connection_t *c);
     ngx_int_t  (*del_conn)(ngx_connection_t *c, ngx_uint_t flags);
 
     ngx_int_t  (*notify)(ngx_event_handler_pt handler);
 
+    /* 处理事件 */
     ngx_int_t  (*process_events)(ngx_cycle_t *cycle, ngx_msec_t timer,
                                  ngx_uint_t flags);
 
+    /* 初始化事件驱动模块 */
     ngx_int_t  (*init)(ngx_cycle_t *cycle, ngx_msec_t timer);
+    /* 退出事件驱动模块调用的方法 */
     void       (*done)(ngx_cycle_t *cycle);
 } ngx_event_actions_t;
 
@@ -448,11 +431,13 @@ typedef struct {
 
 
 typedef struct {
-    ngx_str_t              *name;
+    ngx_str_t              *name;   
 
+    // 解析，初始化配置项
     void                 *(*create_conf)(ngx_cycle_t *cycle);
     char                 *(*init_conf)(ngx_cycle_t *cycle, void *conf);
 
+    // 实现事件驱动机制所需的10个抽象方法
     ngx_event_actions_t     actions;
 } ngx_event_module_t;
 
