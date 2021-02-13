@@ -36,9 +36,13 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 - [事件模块](src/event/Readme.md)
 - [HTTP模块](./src/http)
 
-## 学习笔记
+## 实战
 
 - Nginx 开发HTTP模块
+
+## 问题
+
+- Nginx
 - [Nginx 基础架构](ngx-architecture.md)
 
 

@@ -14,9 +14,9 @@
 
 
 typedef struct {
-    time_t      sec;
-    ngx_uint_t  msec;
-    ngx_int_t   gmtoff;
+    time_t      sec;    
+    ngx_uint_t  msec;   /* sec的毫秒偏移量 */
+    ngx_int_t   gmtoff; /* 时区 */
 } ngx_time_t;
 
 

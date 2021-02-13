@@ -18,13 +18,16 @@
 
 #define NGX_TIMER_LAZY_DELAY  300
 
-
+/* 初始化定时器 */
 ngx_int_t ngx_event_timer_init(ngx_log_t *log);
+/* 找到超时节点定时器 */
 ngx_msec_t ngx_event_find_timer(void);
+/* 回调相应定时器超时的方法 */
 void ngx_event_expire_timers(void);
+/* 检验红黑树中是否还有定时事件 */
 ngx_int_t ngx_event_no_timers_left(void);
 
-
+/* 所有定时器组成的红黑树 */
 extern ngx_rbtree_t  ngx_event_timer_rbtree;
 
 

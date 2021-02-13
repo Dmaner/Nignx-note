@@ -129,13 +129,26 @@ ngx_module_t  ngx_event_core_module = {
 
 在Nginx启动过程中还没有fork出worker子进程时，会首先调用ngx_event_core_module模块的ngx_event_module_init方法，而在fork出worker子进程后，每一个worker进程会在调用ngx_event_core_module模块的ngx_event_process_init方法后才会进入正式的工作循环
 
-- ngx_event_module_init工作
+- `ngx_event_module_init`工作
 
 初始化了一些变量，尤其是ngx_http_stub_status_module统计模块使用的一些原子性的统计变量等等
 
-- ngx_event_process_init工作
+- `ngx_event_process_init`工作
 
 ![image](../../images/ngx_core_event_process_init.png)
+
+
+## `ngx_process_events_and_timers`流程
+
+每个`worker`进程调用`ngx_process_events_and_timers`进行对所有事件的处理
+
+- 源码
+
+[src/event/ngx_event.c](ngx_event.c#L200)
+
+- 函数流程图
+
+![images](../../images/worker_events_timers_process.png)
 
 ## `Nginx`事件结构体 - `ngx_event_t`
 
@@ -161,6 +174,7 @@ ngx_module_t  ngx_event_core_module = {
 
 [src/event/ngx_event_connection.h](ngx_event_connect.h#L38)
 
+
 ## 代码结构
 
 ```shell
@@ -177,14 +191,13 @@ event
 │  ngx_event_pipe.h
 │  ngx_event_posted.c
 │  ngx_event_posted.h
-│  ngx_event_timer.c
-│  ngx_event_timer.h
+│  ngx_event_timer.{c, h}       // 定时器相关
 │  ngx_event_udp.c
 │  Readme.md
 │
-└─modules   // 不同系统对应的事件处理模块
+└─modules       // 不同系统对应的事件处理模块
         ngx_devpoll_module.c
-        ngx_epoll_module.c
+        ngx_epoll_module.c      // epoll，异步I/O
         ngx_eventport_module.c
         ngx_iocp_module.c
         ngx_iocp_module.h

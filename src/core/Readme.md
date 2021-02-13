@@ -131,6 +131,14 @@ struct ngx_cycle_s {
 };
 ```
 
+## `Nginx`中的缓存时间 - `ngx_time_t`
+
+`ngx_time_t`缓存在内存中
+
+- 源码
+
+[src/core/ngx_times.h](ngx_times.h#L16)
+
 ## 代码目录
 
 ```shell
@@ -199,6 +207,5 @@ struct ngx_cycle_s {
 ├── ngx_syslog.h
 ├── ngx_thread_pool.c
 ├── ngx_thread_pool.h
-├── ngx_times.c
-├── ngx_times.h
+├── ngx_times.{c, h}  // 时间表示
 ```
