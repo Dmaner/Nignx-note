@@ -142,7 +142,7 @@ struct ngx_cycle_s {
 ├── ngx_buf.{c, h}          // 缓冲区结构
 ├── ngx_conf_file.{c, h}    // 配置文件解析
 ├── ngx_config.h
-├── ngx_connection.{c, h}   // TCP连接相关结构体 
+├── ngx_connection.{c, h}   // 被动连接相关结构体 
 ├── ngx_core.h              // 声明各种模块
 ├── ngx_cpuinfo.c
 ├── ngx_crc32.c

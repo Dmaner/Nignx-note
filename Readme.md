@@ -1,9 +1,11 @@
-# Nginx 源码阅读
+# Nginx 源码阅读 & 实战
 
-## 学习环境
+该项目主要对`Nginx`进行源码分析，并添加中文注释，以及使用`Nginx`进行实战
+
+## 环境
 
 - Ubuntu 18.04
-- Nignx 1.96.1
+- Nignx 1.96.6
 
 ## 简易编译过程
 
@@ -37,7 +39,7 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 ## 学习笔记
 
 - Nginx 开发HTTP模块
-- Nginx 基础架构
+- [Nginx 基础架构](ngx-architecture.md)
 
 
 ## 参考
