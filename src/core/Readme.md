@@ -4,10 +4,14 @@
 
 正是`nginx`模块结构体`ngx_module_t`设计简单，以及所有模块都遵循`ngx_module_t`的接口规范，使得`nginx`拥有优秀的模块化设计和灵活性
 
-- `ngx_module_t`模块的实现相应模块防水
-![ngx_module_t对各类模块的具象化方式](../../images/ngx_module_t.png)
+- `ngx_module_t`模块的实现相应模块方式
+
+<img src="../../images/ngx_module_t.png" alt="ngx_module_t对各类模块的具象化方式" style="zoom: 50%;" />
+
 - 五大类型的模块（核心模块，配置模块，HTTP模块，Mail模块，事件模块）对`ngx_module_t`的联系
-![五种模块的联系](../../images/modules_realtiosn.png)
+
+<img src="../../images/modules_realtiosn.png" alt="五种模块的联系" style="zoom:50%;" />
+
 - 源码实现
 
 ```c
@@ -59,7 +63,7 @@ struct ngx_module_s {
 - ngx_openssl_module
 - ngx_http_module
 - ngx_mail_module
- 
+
 为什么要定义核心模块呢？因为这样可以简化Nginx的设计，使得非模块化的框架代码只关注于如何调用6个核心模块
 - 代码
 ```c
