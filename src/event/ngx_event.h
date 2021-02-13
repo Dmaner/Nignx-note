@@ -31,23 +31,23 @@ struct ngx_event_s {
     void            *data;  /* 事件相关对象，例如ngx_connection_t链接对象 */
 
     /* 各种标志位 */
-    unsigned         write:1;       /* 事件可写，通常表示在TCP链接状态下可以发送数据包 */
-    unsigned         accept:1;      /* 表示此事件可以建立新的连接 */
-    unsigned         instance:1;    /* 表示事件是否过期 */
-    unsigned         active:1;      /* 事件是否活跃 */
-    unsigned         disabled:1;    /* 是否禁用事件 */
-    unsigned         ready:1;       /* 事件是否就绪 */
-    unsigned         oneshot:1;     /* 在kqueue, eventport使用 */
-    unsigned         complete:1;    /* aio事件是否完成 */
-    unsigned         eof:1;         /* 当前字符流是否结束 */
-    unsigned         error:1;       /* 事件处理是否出错 */
-    unsigned         timedout:1;    /* 事件是否超时 */
-    unsigned         timer_set:1;   /* 事件是否存在于定时器中 */
-    unsigned         delayed:1;     /* 是否延迟处理 */
+    unsigned         write:1;           /* 事件可写，通常表示在TCP链接状态下可以发送数据包 */
+    unsigned         accept:1;          /* 表示此事件可以建立新的连接 */
+    unsigned         instance:1;        /* 表示事件是否过期 */
+    unsigned         active:1;          /* 事件是否活跃 */
+    unsigned         disabled:1;        /* 是否禁用事件 */
+    unsigned         ready:1;           /* 事件是否就绪 */
+    unsigned         oneshot:1;         /* 在kqueue, eventport使用 */
+    unsigned         complete:1;        /* aio事件是否完成 */
+    unsigned         eof:1;             /* 当前字符流是否结束 */
+    unsigned         error:1;           /* 事件处理是否出错 */
+    unsigned         timedout:1;        /* 事件是否超时 */
+    unsigned         timer_set:1;       /* 事件是否存在于定时器中 */
+    unsigned         delayed:1;         /* 是否延迟处理 */
     unsigned         deferred_accept:1; /* 延迟建立tcp连接 */
-    unsigned         pending_eof:1; /* the pending eof reported by kqueue, epoll or in aio chain operation */
+    unsigned         pending_eof:1;     /* the pending eof reported by kqueue, epoll or in aio chain operation */
     unsigned         posted:1;
-    unsigned         closed:1;      /* 事件是否关闭 */
+    unsigned         closed:1;          /* 事件是否关闭 */
 
     /* to test on worker exit */
     unsigned         channel:1;
@@ -414,15 +414,15 @@ extern ngx_os_io_t  ngx_io;
 
 
 typedef struct {
-    ngx_uint_t    connections;
-    ngx_uint_t    use;
+    ngx_uint_t    connections;          /* 连接池的大小 */
+    ngx_uint_t    use;                  /* 选用的事件模块在所有事件模块中的序号 */
 
-    ngx_flag_t    multi_accept;
-    ngx_flag_t    accept_mutex;
+    ngx_flag_t    multi_accept;         /* 标志位，如果为1，则表示在接收到一个新连接事件时，一次性建立尽可能多的连接 */
+    ngx_flag_t    accept_mutex;         /* 标志位，为1时表示启用负载均衡锁 */
 
-    ngx_msec_t    accept_mutex_delay;
+    ngx_msec_t    accept_mutex_delay;   /* 负载均衡锁会使有些worker进程在拿不到锁时延迟建立新连接 */
 
-    u_char       *name;
+    u_char       *name;                 /* 事件模块名称 */
 
 #if (NGX_DEBUG)
     ngx_array_t   debug_connection;

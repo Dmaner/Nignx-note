@@ -12,11 +12,9 @@
 - `ngx_aio_module`
 - `ngx_rtsig_module`
 - 基于Windows的`ngx_select_module`模块
+
 初始化时采用`ngx_event_core_module`选择其一
 
-## 事件模块初始化
-
-![images](../../images/ngx_event_module_init.png)
 
 ## 事件处理核心模块`ngx_event_module_t`
 
@@ -37,6 +35,108 @@ typedef struct {
 } ngx_event_module_t;
 ```
 
+## 如何构建事件模块 - `ngx_event_module`的实现
+
+这里让我感觉不舒服的一点是`ngx_event_module`的实现是作为核心模块实现事件模块的配置项解析和初始化，反而`ngx_event_core_module`用来管理事件处理分发，这个命名让我甚是混淆
+
+- 先定义好相应的配置项`ngx_command_t`用于解析配置文件解析`events{...}`配置块
+
+```c
+/* src/event/ngx_event.c */
+static ngx_command_t  ngx_events_commands[] = {
+
+    { ngx_string("events"),
+      NGX_MAIN_CONF|NGX_CONF_BLOCK|NGX_CONF_NOARGS,
+      ngx_events_block,
+      0,
+      0,
+      NULL }, ngx_null_command
+};
+```
+
+`ngx_events_block`用于设置事件模块配置项
+
+<img src="../../images/ngx_event_module_init.png" alt="ngx_events_block流程" style="zoom: 50%;" />
+
+
+
+- 作为核心模块需要实现核心模块的共同接口`ngx_core_module_t`
+
+```c
+/* src/event/ngx_event.c */
+static ngx_core_module_t  ngx_events_module_ctx = {
+    ngx_string("events"),
+    NULL,
+    ngx_event_init_conf
+};
+```
+
+- 实现`ngx_event_module`
+
+```c
+/* src/event/ngx_event.c */
+ngx_module_t  ngx_events_module = {
+    NGX_MODULE_V1,
+    &ngx_events_module_ctx,                /* module context */
+    ngx_events_commands,                   /* module directives */
+    NGX_CORE_MODULE,                       /* module type */
+    NULL,                                  /* init master */
+    NULL,                                  /* init module */
+    NULL,                                  /* init process */
+    NULL,                                  /* init thread */
+    NULL,                                  /* exit thread */
+    NULL,                                  /* exit process */
+    NULL,                                  /* exit master */
+    NGX_MODULE_V1_PADDING
+};
+```
+
+## `ngx_event_core_module`实现
+
+`ngx_event_core_module`在所有事件模块的第一位执行，用于构建连接池，以及决定使用哪种事件驱动机制，以及初始化需要的哪些事件模型
+
+- 源码
+
+```c
+// 命名核心事件模块
+static ngx_str_t  event_core_name = ngx_string("event_core");
+...
+// 实现通用`ngx_event_module_t`接口
+static ngx_event_module_t  ngx_event_core_module_ctx = {
+    &event_core_name,
+    ngx_event_core_create_conf,            /* create configuration */
+    ngx_event_core_init_conf,              /* init configuration */
+
+    { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+};
+...
+// 实现核心事件模块 
+ngx_module_t  ngx_event_core_module = {
+    NGX_MODULE_V1,
+    &ngx_event_core_module_ctx,            /* module context */
+    ngx_event_core_commands,               /* module directives */
+    NGX_EVENT_MODULE,                      /* module type */
+    NULL,                                  /* init master */
+    ngx_event_module_init,                 /* init module */
+    ngx_event_process_init,                /* init process */
+    NULL,                                  /* init thread */
+    NULL,                                  /* exit thread */
+    NULL,                                  /* exit process */
+    NULL,                                  /* exit master */
+    NGX_MODULE_V1_PADDING
+};
+```
+
+在Nginx启动过程中还没有fork出worker子进程时，会首先调用ngx_event_core_module模块的ngx_event_module_init方法，而在fork出worker子进程后，每一个worker进程会在调用ngx_event_core_module模块的ngx_event_process_init方法后才会进入正式的工作循环
+
+- ngx_event_module_init工作
+
+初始化了一些变量，尤其是ngx_http_stub_status_module统计模块使用的一些原子性的统计变量等等
+
+- ngx_event_process_init工作
+
+![image](../../images/ngx_core_event_process_init.png)
+
 ## `Nginx`事件结构体 - `ngx_event_t`
 
 `Nginx`事件都由`ngx_event_t`表示，其中较为重要的部分是其`hander`属性
@@ -51,7 +151,7 @@ typedef struct {
 
 - 源码
 
-[src/core/ngx_connection.h](../core/ngx_connection.h)
+[src/core/ngx_connection.h](../core/ngx_connection.h#L125)
 
 ## 主动连接`ngx_peer_connection_t`
 
@@ -59,7 +159,7 @@ typedef struct {
 
 - 源码
 
-[src/event/ngx_event_connection.h](ngx_event_connect.h)
+[src/event/ngx_event_connection.h](ngx_event_connect.h#L38)
 
 ## 代码结构
 

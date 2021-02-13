@@ -220,7 +220,7 @@
 
 /* nginx模块接口 */
 struct ngx_module_s {
-    ngx_uint_t            ctx_index;    // 当先模块在这一类模块的序号
+    ngx_uint_t            ctx_index;    // 当前模块在这一类模块的序号
     ngx_uint_t            index;        // 总的模块数组序号
 
     char                 *name;
