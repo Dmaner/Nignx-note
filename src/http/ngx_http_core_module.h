@@ -104,32 +104,32 @@ typedef struct {
 } ngx_http_listen_opt_t;
 
 
+/* HTTP请求处理的十一个阶段 */
 typedef enum {
-    NGX_HTTP_POST_READ_PHASE = 0,
-
-    NGX_HTTP_SERVER_REWRITE_PHASE,
-
-    NGX_HTTP_FIND_CONFIG_PHASE,
-    NGX_HTTP_REWRITE_PHASE,
-    NGX_HTTP_POST_REWRITE_PHASE,
-
-    NGX_HTTP_PREACCESS_PHASE,
-
-    NGX_HTTP_ACCESS_PHASE,
-    NGX_HTTP_POST_ACCESS_PHASE,
-
-    NGX_HTTP_PRECONTENT_PHASE,
-
-    NGX_HTTP_CONTENT_PHASE,
-
-    NGX_HTTP_LOG_PHASE
+    NGX_HTTP_POST_READ_PHASE = 0,   /* 在接收到完整的HTTP头部后处理的HTTP阶段 */
+    NGX_HTTP_SERVER_REWRITE_PHASE,  /* 在将请求的URI与location表达式匹配前，修改请求的URI */
+    NGX_HTTP_FIND_CONFIG_PHASE,     /* 根据URI寻找匹配的表达式 */
+    NGX_HTTP_REWRITE_PHASE,         /* 在NGX_HTTP_FIND_CONFIG_PHASE阶段寻找到匹配的location之后再修改请求的URI */
+    NGX_HTTP_POST_REWRITE_PHASE,    /* 这一阶段是用于在rewrite重写URL后，防止错误的nginx.conf配置导致死循环 */
+    NGX_HTTP_PREACCESS_PHASE,       /* 表示在处理NGX_HTTP_ACCESS_PHASE阶段决定请求的访问权限前，HTTP模块可以介入的处理阶段 */
+    NGX_HTTP_ACCESS_PHASE,          /* 这个阶段用于让HTTP模块判断是否允许这个请求访问Nginx服务器 */
+    NGX_HTTP_POST_ACCESS_PHASE,     /* 在NGX_HTTP_ACCESS_PHASE阶段中，当HTTP模块的handler处理函数返回不允许访问的错误码时，
+                                     * 这里将负责向用户发送拒绝服务的错误响应 
+                                     */
+    NGX_HTTP_PRECONTENT_PHASE,      /* 当HTTP请求访问静态文件资源时，try_files配置项可以使这个请求顺序地访问多个静态文件资源，
+                                     * 如果某一次访问失败，则继续访问try_files中指定的下一个静态资源 
+                                     */
+    NGX_HTTP_CONTENT_PHASE,         /* 用于处理HTTP请求内容的阶段，这是大部分HTTP模块最愿意介入的阶段 */
+    NGX_HTTP_LOG_PHASE              /* 处理完请求后记录日志的阶段 */
 } ngx_http_phases;
 
 typedef struct ngx_http_phase_handler_s  ngx_http_phase_handler_t;
 
+/* *一个HTTP处理阶段中的checker检查方法，仅可以由HTTP框架实现，以此控制HTTP请求的处理流程 */
 typedef ngx_int_t (*ngx_http_phase_handler_pt)(ngx_http_request_t *r,
     ngx_http_phase_handler_t *ph);
 
+/* HTTP请求处理阶段的一个处理方法 */
 struct ngx_http_phase_handler_s {
     ngx_http_phase_handler_pt  checker;
     ngx_http_handler_pt        handler;
@@ -137,8 +137,9 @@ struct ngx_http_phase_handler_s {
 };
 
 
+/* 处理方法数组 */
 typedef struct {
-    ngx_http_phase_handler_t  *handlers;
+    ngx_http_phase_handler_t  *handlers;        
     ngx_uint_t                 server_rewrite_index;
     ngx_uint_t                 location_rewrite_index;
 } ngx_http_phase_engine_t;
@@ -149,10 +150,11 @@ typedef struct {
 } ngx_http_phase_t;
 
 
+/* HTTP模块http{...}配置项 */
 typedef struct {
-    ngx_array_t                servers;         /* ngx_http_core_srv_conf_t */
+    ngx_array_t                servers;         /* ngx_http_core_srv_conf_t数组 */
 
-    ngx_http_phase_engine_t    phase_engine;
+    ngx_http_phase_engine_t    phase_engine;    /* handler数组 */
 
     ngx_hash_t                 headers_in_hash;
 
@@ -170,12 +172,13 @@ typedef struct {
 
     ngx_hash_keys_arrays_t    *variables_keys;
 
-    ngx_array_t               *ports;
+    ngx_array_t               *ports;           /* 所有该http{...}配置项的监听端口 */
 
     ngx_http_phase_t           phases[NGX_HTTP_LOG_PHASE + 1];
 } ngx_http_core_main_conf_t;
 
 
+/* HTTP模块server{...}配置项 */
 typedef struct {
     /* array of the ngx_http_server_name_t, "server_name" directive */
     ngx_array_t                 server_names;
@@ -265,15 +268,19 @@ typedef struct {
 
 
 typedef struct {
-    ngx_int_t                  family;
-    in_port_t                  port;
-    ngx_array_t                addrs;     /* array of ngx_http_conf_addr_t */
+    ngx_int_t                  family;      /* socket地址族 */
+    in_port_t                  port;        /* 端口号 */
+    ngx_array_t                addrs;       /* 监听端口对应的ngx_http_conf_addr_t */
 } ngx_http_conf_port_t;
 
 
+/* 配置项IP地址 */
 typedef struct {
-    ngx_http_listen_opt_t      opt;
+    ngx_http_listen_opt_t      opt;         /* 套接字各种属性 */
 
+    /* 以下3个散列表用于加速寻找到对应监听端口上的新连接，确定到底使用哪个server{}虚拟主机下的配置来处理它。
+     * 所以，散列表的值就是ngx_http_core_srv_conf_t结构体的地址 
+     * */
     ngx_hash_t                 hash;
     ngx_hash_wildcard_t       *wc_head;
     ngx_hash_wildcard_t       *wc_tail;
@@ -283,9 +290,8 @@ typedef struct {
     ngx_http_server_name_t    *regex;
 #endif
 
-    /* the default server configuration for this address:port */
-    ngx_http_core_srv_conf_t  *default_server;
-    ngx_array_t                servers;  /* array of ngx_http_core_srv_conf_t */
+    ngx_http_core_srv_conf_t  *default_server;  /* 该监听端口下对应的默认server{}虚拟主机 */
+    ngx_array_t                servers;         /* ngx_http_core_srv_conf_t数组 */
 } ngx_http_conf_addr_t;
 
 
@@ -297,6 +303,7 @@ typedef struct {
 } ngx_http_err_page_t;
 
 
+/* HTTP模块location{...}配置项结构体 */
 struct ngx_http_core_loc_conf_s {
     ngx_str_t     name;          /* location name */
 
@@ -453,6 +460,7 @@ typedef struct {
 } ngx_http_location_queue_t;
 
 
+/* 用于快速搜索location配置项的儿茶平衡查找树 */
 struct ngx_http_location_tree_node_s {
     ngx_http_location_tree_node_t   *left;
     ngx_http_location_tree_node_t   *right;

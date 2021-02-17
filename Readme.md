@@ -42,7 +42,7 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 
 ## 问题
 
-- Nginx
+- Nginx 异步I/O
 - [Nginx 基础架构](ngx-architecture.md)
 
 

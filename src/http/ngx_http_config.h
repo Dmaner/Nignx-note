@@ -14,24 +14,34 @@
 #include <ngx_http.h>
 
 
+/* HTTP配置项 */
 typedef struct {
-    void        **main_conf;
-    void        **srv_conf;
-    void        **loc_conf;
+    void        **main_conf;    /* 存放http{...}配置项结构体数组 */
+    void        **srv_conf;     /* 存放server{...}配置项结构体数组 */
+    void        **loc_conf;     /* 存放location{...}配置项结构体数组 */
 } ngx_http_conf_ctx_t;
 
 
+/* HTTP核心模块 */
 typedef struct {
+    /* 解析http{...}前回调 */
     ngx_int_t   (*preconfiguration)(ngx_conf_t *cf);
+    /* 解析http{...}后回调 */
     ngx_int_t   (*postconfiguration)(ngx_conf_t *cf);
 
+    /* 创建用于存储HTTP全局配置项的结构体 */
     void       *(*create_main_conf)(ngx_conf_t *cf);
+    /* 解析完http{...}配置项后回调 */
     char       *(*init_main_conf)(ngx_conf_t *cf, void *conf);
 
+    /* 创建用于存储可同时出现在http{...}、server{...}级别配置项的结构体 */
     void       *(*create_srv_conf)(ngx_conf_t *cf);
+    /* 出现在http{...}级别中的配置项值合并到server{...}级别配置项中 */
     char       *(*merge_srv_conf)(ngx_conf_t *cf, void *prev, void *conf);
 
+    /*创建用于存储可同时出现在http{...}、server{...}、location{...}级别配置项的结构体  */
     void       *(*create_loc_conf)(ngx_conf_t *cf);
+    /* 出现在http{...}、server{...}级别中的配置项值合并到location{...}级别配置项中 */
     char       *(*merge_loc_conf)(ngx_conf_t *cf, void *prev, void *conf);
 } ngx_http_module_t;
 
