@@ -56,7 +56,7 @@ static ngx_command_t  ngx_events_commands[] = {
 
 `ngx_events_block`用于设置事件模块配置项
 
-<img src="../../images/ngx_event_module_init.png" alt="ngx_events_block流程" style="zoom: 50%;" />
+<img src="../../images/ngx_event_module_init.png" alt="ngx_events_block流程" style="zoom: 33%;" />
 
 
 
@@ -135,7 +135,7 @@ ngx_module_t  ngx_event_core_module = {
 
 - `ngx_event_process_init`工作
 
-![image](../../images/ngx_core_event_process_init.png)
+<img src="../../images/ngx_core_event_process_init.png" alt="image" style="zoom:50%;" />
 
 
 ## `ngx_process_events_and_timers`流程
@@ -148,7 +148,7 @@ ngx_module_t  ngx_event_core_module = {
 
 - 函数流程图
 
-![images](../../images/worker_events_timers_process.png)
+<img src="../../images/worker_events_timers_process.png" alt="images" style="zoom: 50%;" />
 
 ## `Nginx`事件结构体 - `ngx_event_t`
 

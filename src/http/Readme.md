@@ -31,6 +31,79 @@ typedef struct {
 } ngx_http_module_t;
 ```
 
+## `ngx_http_request_t`结构体
+
+负责封装HTTP请求报文
+
+```c
+/* src/http/ngx_http_request.h */
+struct ngx_http_request_s {
+    uint32_t                          signature;        /* "HTTP" */
+    ngx_connection_t                 *connection;       /* 对应客户端链接 */
+    void                            **ctx;              /* 保存所有HTTP上下文模块指针数组 */
+    void                            **main_conf;        /* 指针数组：http配置项 */
+    void                            **srv_conf;         /* 指针数组：server配置项 */
+    void                            **loc_conf;         /* 指针数组：location配置项 */
+
+    ngx_http_event_handler_pt         read_event_handler;   /* 读事件回调函数 */
+    ngx_http_event_handler_pt         write_event_handler;  /* 写事件回调函数 */
+...
+    ngx_http_upstream_t              *upstream;         /* upstream相关 */
+...
+    ngx_pool_t                       *pool;             /* 内存池 */
+    ngx_buf_t                        *header_in;        /* 接受HTTP头部缓冲区 */
+
+    ngx_http_headers_in_t             headers_in;       /* HTTP头部链表 */
+    ngx_http_headers_out_t            headers_out;      /* HTTP响应链表 */
+
+    ngx_http_request_body_t          *request_body;     /* HTTP包体 */
+    time_t                            lingering_time;   /* 延迟关闭事件 */
+    time_t                            start_sec;        /* 当前请求初始化事件 */
+    ngx_msec_t                        start_msec;       /* 毫秒偏移量 */
+    
+    /* 解析HTTP头部保存的信息 */
+    ngx_uint_t                        method;
+    ngx_uint_t                        http_version;
+    ngx_str_t                         request_line;
+    ngx_str_t                         uri;
+    ngx_str_t                         args;
+    ngx_str_t                         exten;
+    ngx_str_t                         unparsed_uri;
+    ngx_str_t                         method_name;
+    ngx_str_t                         http_protocol;
+    ngx_str_t                         schema;
+
+    ngx_chain_t                      *out;              /* HTTP响应 */
+    ngx_http_request_t               *main;             /* 用于判断是否为原始请求 */
+    ngx_http_request_t               *parent;           /* 当前请求的父请求 */
+    
+    /* 子请求相关 */
+    ngx_http_postponed_request_t     *postponed;        
+    ngx_http_post_subrequest_t       *post_subrequest;
+    ngx_http_posted_request_t        *posted_requests;
+
+    ngx_int_t                         phase_handler;    /* 阶段回调函数 */
+    ngx_http_handler_pt               content_handler;  /* content阶段回调函数 */
+    ngx_uint_t                        access_code;      /* acess阶段判断是否有请求权限 */
+...
+    off_t                             request_length;   /* HTTP请求行长度 */
+...
+    ngx_http_cleanup_t               *cleanup;          /* 销毁请求时回调函数 */
+
+    /* 标志位 */
+    unsigned                          count:16;         /* 调用次数 */
+    unsigned                          subrequests:8;    /* 子请求数 */
+    unsigned                          blocked:8;        /* 是否阻塞 */
+    unsigned                          aio:1;            /* 是否使用异步文件I/O */
+    unsigned                          http_state:4;     /* HTTP状态集状
+...
+    unsigned                          keepalive:1;      /* keepalive标志 */
+...
+    unsigned                          buffered:4;       /* 是否缓冲区有待发送内容 */
+...
+};
+```
+
 ## HTTP请求处理11个阶段
 
 - 状态定义
@@ -59,7 +132,32 @@ typedef enum {
 
 ## HTTP框架初始化阶段
 
-![image](../../images/ngx_http_framwork_init.png)
+<img src="../../images/ngx_http_framwork_init.png" alt="image" style="zoom:50%;" />
+
+## HTTP框架执行流程
+
+1. 收到TCP连接，调用`ngx_http_init_connection`[函数](ngx_http_request.c#L207)设置可读/可写事件的回调函数，事件发生调用相应的回调函数
+2. TCP连接上第一次出现可读事件时（当缓冲区上有字节可读时），调用`ngx_http_wait_request_handler`[函数](ngx_http_request.c#L375)初始化HTTP请求
+
+<img src="../../images/ngx_http_init_request.png" alt="image" style="zoom:50%;" />
+
+3. 初始化`http_request_t`初始化完成后，开始接收HTTP请求行，调用`ngx_http_process_request_line`[函数](ngx_http_request.c#L1053)接收HTTP请求行
+
+<img src="../../images/ngx_http_request_line.png" alt="image" style="zoom:50%;" />
+
+4. 若HTTP请求行接收完成，调用`ngx_http_process_request_headers`[函数](ngx_http_request.c#L1338)接收HTTP头部
+
+<img src="../../images/ngx_requset_headers.png" alt="image" style="zoom:50%;" />
+
+5. 若完成HTTP头部接收，调用`ngx_http_process_request`[函数](ngx_http_request.c#L2010)开始处理解析HTTP请求
+
+<img src="../../images/ngx_http_process_request.png" alt="image" style="zoom:50%;" />
+
+6. 调用`ngx_http_read_client_request_body`[函数](ngx_http_request_body.c#L31)接收HTTP包体，调用`ngx_http_discard_request_body`[函数](ngx_http_request_body.c#L569)丢弃包体
+
+7. 发送HTTP响应，调用`ngx_http_send_header`[函数]构造响应行和头部(ngx_http_core_module.c#L1813)和`ngx_http_output_filter`[函数](ngx_http_core_module.c#L1835)发送响应包体
+
+8. 调用`ngx_http_free_request`[函数](ngx_http_request.c#L3623)释放相应数据结构，调用`ngx_http_close_connection`[函数](ngx_http_request.c#L3731)关闭TCP连接，结束HTTP请求
 
 ## 代码目录
 
@@ -68,7 +166,7 @@ typedef enum {
 ├── modules
 ├── ngx_http.c
 ├── ngx_http_cache.h
-├── ngx_http_config.h   // http核心模块
+├── ngx_http_config.h       // http核心模块
 ├── ngx_http_copy_filter_module.c
 ├── ngx_http_core_module.c  // 存储http{...}, server{...}, location{...} 配置项
 ├── ngx_http_core_module.h
@@ -90,13 +188,4 @@ typedef enum {
 ├── ngx_http_variables.h
 ├── ngx_http_write_filter_module.c
 └── v2
-    ├── ngx_http_v2.c
-    ├── ngx_http_v2_encode.c
-    ├── ngx_http_v2_filter_module.c
-    ├── ngx_http_v2.h
-    ├── ngx_http_v2_huff_decode.c
-    ├── ngx_http_v2_huff_encode.c
-    ├── ngx_http_v2_module.c
-    ├── ngx_http_v2_module.h
-    └── ngx_http_v2_table.c
 ```
