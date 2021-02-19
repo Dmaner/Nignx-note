@@ -174,41 +174,43 @@ typedef enum {
 
 
 typedef struct {
-    ngx_peer_connection_t   upstream;
-    ngx_buf_t              *buffer;
+    ngx_peer_connection_t   upstream;   /* 上游邮件服务器 */
+    ngx_buf_t              *buffer;     /* 上下游见TCP消息的缓冲区 */
 } ngx_mail_proxy_ctx_t;
 
 
+/* 描述邮件请求 */
 typedef struct {
-    uint32_t                signature;         /* "MAIL" */
+    uint32_t                signature;      /* "MAIL" */
 
-    ngx_connection_t       *connection;
+    ngx_connection_t       *connection;     /* 下游客户端 */
 
-    ngx_str_t               out;
-    ngx_buf_t              *buffer;
+    ngx_str_t               out;            /* 向下游发送内容 */
+    ngx_buf_t              *buffer;         /* 接收下游请求的缓冲区 */
 
-    void                  **ctx;
-    void                  **main_conf;
-    void                  **srv_conf;
+    void                  **ctx;            /* 邮件模块上下文、用于添加不同种协议 */
+    void                  **main_conf;      /* main级别配置项指针数组 */
+    void                  **srv_conf;       /* srv级别配置项指针数组 */
 
-    ngx_resolver_ctx_t     *resolver_ctx;
+    ngx_resolver_ctx_t     *resolver_ctx;   /* 解析主机域名 */
 
-    ngx_mail_proxy_ctx_t   *proxy;
+    ngx_mail_proxy_ctx_t   *proxy;          /*  */
 
-    ngx_uint_t              mail_state;
+    ngx_uint_t              mail_state;     /* 邮件协议状态机状态 */
 
-    unsigned                protocol:3;
-    unsigned                blocked:1;
-    unsigned                quit:1;
-    unsigned                quoted:1;
+    unsigned                protocol:3;     /* 协议类型 */
+    unsigned                blocked:1;      /* 是否读/写操作阻塞 */
+    unsigned                quit:1;         /* 是否请求结束 */
+    unsigned                quoted:1;       
     unsigned                backslash:1;
     unsigned                no_sync_literal:1;
-    unsigned                starttls:1;
+    unsigned                starttls:1;     /* 是否使用TLS */
     unsigned                esmtp:1;
-    unsigned                auth_method:3;
-    unsigned                auth_wait:1;
+    unsigned                auth_method:3;  /* 认证服务器交互记录 */
+    unsigned                auth_wait:1;    
 
-    ngx_str_t               login;
+    /* 用于验证的用户和密码 */
+    ngx_str_t               login;          
     ngx_str_t               passwd;
 
     ngx_str_t               salt;
@@ -216,8 +218,8 @@ typedef struct {
     ngx_str_t               tagged_line;
     ngx_str_t               text;
 
-    ngx_str_t              *addr_text;
-    ngx_str_t               host;
+    ngx_str_t              *addr_text;      /* Nginx服务器地址 */
+    ngx_str_t               host;           /* 主机地址 */
     ngx_str_t               smtp_helo;
     ngx_str_t               smtp_from;
     ngx_str_t               smtp_to;
@@ -227,10 +229,9 @@ typedef struct {
     ngx_uint_t              command;
     ngx_array_t             args;
 
-    ngx_uint_t              login_attempt;
+    ngx_uint_t              login_attempt;  /* 认证服务器交互次数 */
 
-    /* used to parse POP3/IMAP/SMTP command */
-
+    /* 用来解析 POP3/IMAP/SMTP 命令 */
     ngx_uint_t              state;
     u_char                 *cmd_start;
     u_char                 *arg_start;
@@ -315,15 +316,16 @@ typedef void (*ngx_mail_auth_state_pt)(ngx_event_t *rev);
 typedef ngx_int_t (*ngx_mail_parse_command_pt)(ngx_mail_session_t *s);
 
 
+/* 协议类型 */
 struct ngx_mail_protocol_s {
     ngx_str_t                   name;
-    in_port_t                   port[4];
-    ngx_uint_t                  type;
+    in_port_t                   port[4];    /* 常用监听端口 */
+    ngx_uint_t                  type;       /* 邮件模块类型 */
 
-    ngx_mail_init_session_pt    init_session;
-    ngx_mail_init_protocol_pt   init_protocol;
-    ngx_mail_parse_command_pt   parse_command;
-    ngx_mail_auth_state_pt      auth_state;
+    ngx_mail_init_session_pt    init_session;   /* 初始化TCP连接方法 */
+    ngx_mail_init_protocol_pt   init_protocol;  /* 接收，解析客户端请求方法 */
+    ngx_mail_parse_command_pt   parse_command;  /* 解析客户端邮件协议方法 */
+    ngx_mail_auth_state_pt      auth_state;     /* 认证客户端请求方法 */
 
     ngx_str_t                   internal_server_error;
     ngx_str_t                   cert_error;
@@ -332,7 +334,7 @@ struct ngx_mail_protocol_s {
 
 
 typedef struct {
-    ngx_mail_protocol_t        *protocol;
+    ngx_mail_protocol_t        *protocol;   /* 协议类型 */
 
     void                       *(*create_main_conf)(ngx_conf_t *cf);
     char                       *(*init_main_conf)(ngx_conf_t *cf, void *conf);

@@ -34,7 +34,8 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 
 - [核心模块](src/core/Readme.md)
 - [事件模块](src/event/Readme.md)
-- [HTTP模块](./src/http/Readme.md)
+- [HTTP模块](src/http/Readme.md)
+- [邮件模块](src/mail/Readme.md)
 
 ## 实战
 

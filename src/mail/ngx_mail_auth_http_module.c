@@ -34,14 +34,15 @@ typedef struct ngx_mail_auth_http_ctx_s  ngx_mail_auth_http_ctx_t;
 typedef void (*ngx_mail_auth_http_handler_pt)(ngx_mail_session_t *s,
     ngx_mail_auth_http_ctx_t *ctx);
 
+
 struct ngx_mail_auth_http_ctx_s {
-    ngx_buf_t                      *request;
-    ngx_buf_t                      *response;
-    ngx_peer_connection_t           peer;
+    ngx_buf_t                      *request;    /* 发往认证服务器的请求 */
+    ngx_buf_t                      *response;   /* 认证服务器的响应 */
+    ngx_peer_connection_t           peer;       /* 认证服务器和Nginx的连接 */
 
-    ngx_mail_auth_http_handler_pt   handler;
+    ngx_mail_auth_http_handler_pt   handler;    /* 解析认证服务器的响应的方法 */
 
-    ngx_uint_t                      state;
+    ngx_uint_t                      state;      /* 解析状态 */
 
     u_char                         *header_name_start;
     u_char                         *header_name_end;
@@ -231,7 +232,7 @@ ngx_mail_auth_http_init(ngx_mail_session_t *s)
     }
 }
 
-
+/* 发送请求到认证服务器 */
 static void
 ngx_mail_auth_http_write_handler(ngx_event_t *wev)
 {
@@ -249,6 +250,7 @@ ngx_mail_auth_http_write_handler(ngx_event_t *wev)
     ngx_log_debug0(NGX_LOG_DEBUG_MAIL, wev->log, 0,
                    "mail auth http write handler");
 
+    /* 连接认证服务器超时则关闭连接，销毁线程池 */
     if (wev->timedout) {
         ngx_log_error(NGX_LOG_ERR, wev->log, NGX_ETIMEDOUT,
                       "auth http server %V timed out", ctx->peer.name);
@@ -258,6 +260,7 @@ ngx_mail_auth_http_write_handler(ngx_event_t *wev)
         return;
     }
 
+    /* 发送请求字节数 */
     size = ctx->request->last - ctx->request->pos;
 
     n = ngx_send(c, ctx->request->pos, size);
@@ -272,13 +275,16 @@ ngx_mail_auth_http_write_handler(ngx_event_t *wev)
     if (n > 0) {
         ctx->request->pos += n;
 
+        /* 请求发送完毕 */
         if (n == size) {
             wev->handler = ngx_mail_auth_http_dummy_handler;
-
+            
+            /* 删除定时器事件 */
             if (wev->timer_set) {
                 ngx_del_timer(wev);
             }
 
+            /* 添加写事件 */
             if (ngx_handle_write_event(wev, 0) != NGX_OK) {
                 ngx_close_connection(c);
                 ngx_destroy_pool(ctx->pool);

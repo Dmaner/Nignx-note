@@ -13,7 +13,7 @@
 - `ngx_rtsig_module`
 - 基于Windows的`ngx_select_module`模块
 
-初始化时采用`ngx_event_core_module`选择其一
+初始化时调用`ngx_event_core_module`函数选择其一
 
 
 ## 事件处理核心模块`ngx_event_module_t`

@@ -116,6 +116,7 @@ ngx_module_t  ngx_mail_proxy_module = {
 static u_char  smtp_auth_ok[] = "235 2.0.0 OK" CRLF;
 
 
+/* 启动Nginx和上游服务器交互 */
 void
 ngx_mail_proxy_init(ngx_mail_session_t *s, ngx_addr_t *peer)
 {
@@ -160,6 +161,7 @@ ngx_mail_proxy_init(ngx_mail_session_t *s, ngx_addr_t *peer)
 
     pcf = ngx_mail_get_module_srv_conf(s, ngx_mail_proxy_module);
 
+    /* 设置缓冲 */
     s->proxy->buffer = ngx_create_temp_buf(s->connection->pool,
                                            pcf->buffer_size);
     if (s->proxy->buffer == NULL) {
@@ -946,6 +948,7 @@ ngx_mail_proxy_read_response(ngx_mail_session_t *s, ngx_uint_t state)
 }
 
 
+/* 实现上、下游邮件协议之间的透传 */
 static void
 ngx_mail_proxy_handler(ngx_event_t *ev)
 {
@@ -982,7 +985,9 @@ ngx_mail_proxy_handler(ngx_event_t *ev)
     }
 
     if (c == s->connection) {
+    /* 收到下游连接上的事件 */
         if (ev->write) {
+            /* 可写事件，上游缓存信息发送给下游 */
             recv_action = "proxying and reading from upstream";
             send_action = "proxying and sending to client";
             src = s->proxy->upstream.connection;
@@ -998,6 +1003,7 @@ ngx_mail_proxy_handler(ngx_event_t *ev)
         }
 
     } else {
+    /* 收到上游连接事件 */
         if (ev->write) {
             recv_action = "proxying and reading from client";
             send_action = "proxying and sending to upstream";
