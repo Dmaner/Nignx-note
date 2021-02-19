@@ -40,7 +40,7 @@ nginx -c my.conf   /* 采用自己的配置文件 */
 
 - Nginx 开发HTTP模块
 
-## 问题
+## 疑问
 
 - Nginx 异步I/O
 - [Nginx 基础架构](ngx-architecture.md)

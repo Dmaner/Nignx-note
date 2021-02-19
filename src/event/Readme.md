@@ -174,6 +174,13 @@ ngx_module_t  ngx_event_core_module = {
 
 [src/event/ngx_event_connection.h](ngx_event_connect.h#L38)
 
+## `ngx_event_pipe_t`结构体
+
+打开缓存转发响应的关键
+
+- 源码
+
+[src/event/ngx_event_pipe.h](ngx_event_pipe.h#L27)
 
 ## 代码结构
 

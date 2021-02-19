@@ -147,15 +147,15 @@ typedef struct {
 
 
 typedef struct {
-    ngx_http_upstream_srv_conf_t    *upstream;
+    ngx_http_upstream_srv_conf_t    *upstream;              /* 用于定义上游服务器的配置 */
 
-    ngx_msec_t                       connect_timeout;
-    ngx_msec_t                       send_timeout;
-    ngx_msec_t                       read_timeout;
-    ngx_msec_t                       next_upstream_timeout;
+    ngx_msec_t                       connect_timeout;       /* TCP连接的超时时间 */
+    ngx_msec_t                       send_timeout;          /* 发送请求的超时时间 */
+    ngx_msec_t                       read_timeout;          /* 接收响应的超时时间 */
+    ngx_msec_t                       next_upstream_timeout; 
 
-    size_t                           send_lowat;
-    size_t                           buffer_size;
+    size_t                           send_lowat;            /* 发送缓冲区下限 */
+    size_t                           buffer_size;           /* 缓冲区大小 */
     size_t                           limit_rate;
 
     size_t                           busy_buffers_size;
@@ -166,10 +166,10 @@ typedef struct {
     size_t                           max_temp_file_size_conf;
     size_t                           temp_file_write_size_conf;
 
-    ngx_bufs_t                       bufs;
+    ngx_bufs_t                       bufs;                  /* 以缓存响应的方式转发上游服务器的包体时所使用的内存大小 */
 
-    ngx_uint_t                       ignore_headers;
-    ngx_uint_t                       next_upstream;
+    ngx_uint_t                       ignore_headers;        /* 忽略的头部 */
+    ngx_uint_t                       next_upstream;         
     ngx_uint_t                       store_access;
     ngx_uint_t                       next_upstream_tries;
     ngx_flag_t                       buffering;
@@ -188,8 +188,8 @@ typedef struct {
     ngx_array_t                     *hide_headers;
     ngx_array_t                     *pass_headers;
 
-    ngx_http_upstream_local_t       *local;
-    ngx_flag_t                       socket_keepalive;
+    ngx_http_upstream_local_t       *local;                 /* 用于连接上游服务器的本机地址 */
+    ngx_flag_t                       socket_keepalive;      
 
 #if (NGX_HTTP_CACHE)
     ngx_shm_zone_t                  *cache_zone;
@@ -236,7 +236,7 @@ typedef struct {
     ngx_flag_t                       ssl_verify;
 #endif
 
-    ngx_str_t                        module;
+    ngx_str_t                        module;            /* upstream模块名 */
 
     NGX_COMPAT_BEGIN(2)
     NGX_COMPAT_END
@@ -316,51 +316,59 @@ typedef void (*ngx_http_upstream_handler_pt)(ngx_http_request_t *r,
     ngx_http_upstream_t *u);
 
 
+/* upstream模块 */
 struct ngx_http_upstream_s {
-    ngx_http_upstream_handler_pt     read_event_handler;
-    ngx_http_upstream_handler_pt     write_event_handler;
+    ngx_http_upstream_handler_pt     read_event_handler;    /* 读事件回调 */
+    ngx_http_upstream_handler_pt     write_event_handler;   /* 写事件回调 */
+    ngx_peer_connection_t            peer;                  /* 主动向上游服务器发起的连接 */
 
-    ngx_peer_connection_t            peer;
+    ngx_event_pipe_t                *pipe;                  /* 当开启缓存配置，会用pipe来转发响应 */
 
-    ngx_event_pipe_t                *pipe;
+    ngx_chain_t                     *request_bufs;          /* 发送到请求缓冲区 */
 
-    ngx_chain_t                     *request_bufs;
+    ngx_output_chain_ctx_t           output;                /* 向下游发送的数据 */
+    ngx_chain_writer_ctx_t           writer;                
 
-    ngx_output_chain_ctx_t           output;
-    ngx_chain_writer_ctx_t           writer;
-
-    ngx_http_upstream_conf_t        *conf;
-    ngx_http_upstream_srv_conf_t    *upstream;
+    ngx_http_upstream_conf_t        *conf;                  /* 配置项 */
+    ngx_http_upstream_srv_conf_t    *upstream;              
 #if (NGX_HTTP_CACHE)
-    ngx_array_t                     *caches;
+    ngx_array_t                     *caches;                
 #endif
 
-    ngx_http_upstream_headers_in_t   headers_in;
+    ngx_http_upstream_headers_in_t   headers_in;            /* 存储上游HTTP响应 */
 
-    ngx_http_upstream_resolved_t    *resolved;
+    ngx_http_upstream_resolved_t    *resolved;              /* 用于解析主机名 */
 
-    ngx_buf_t                        from_client;
+    ngx_buf_t                        from_client;          
 
-    ngx_buf_t                        buffer;
-    off_t                            length;
+    ngx_buf_t                        buffer;                /* 接收上游服务器响应包头的缓冲区 */
+    off_t                            length;                /* 上游响应包体长度 */
 
-    ngx_chain_t                     *out_bufs;
-    ngx_chain_t                     *busy_bufs;
-    ngx_chain_t                     *free_bufs;
+    ngx_chain_t                     *out_bufs;              /* 指向响应包体或者未发送的上游缓存 */
+    ngx_chain_t                     *busy_bufs;             /* 需要转发包体时未发送的缓存 */
+    ngx_chain_t                     *free_bufs;             /* 回收output中已经发送给下游的缓存 */
 
+    /* 处理包体前的初始化方法，其中data参数用于传递用户数据结构，它实际上就是下面的input_filter_ctx指针 */
     ngx_int_t                      (*input_filter_init)(void *data);
+    /* 处理包体的方法 */
     ngx_int_t                      (*input_filter)(void *data, ssize_t bytes);
-    void                            *input_filter_ctx;
+    void                            *input_filter_ctx;      /* 用于传递HTTP模块自定义的数据结构 */
 
 #if (NGX_HTTP_CACHE)
     ngx_int_t                      (*create_key)(ngx_http_request_t *r);
 #endif
+    /* 构造发往上游服务器的请求 */
     ngx_int_t                      (*create_request)(ngx_http_request_t *r);
+    /* 与上游服务器的通信失败后，重新发起连接 */
     ngx_int_t                      (*reinit_request)(ngx_http_request_t *r);
+    /* 解析上游服务器返回响应的包头 */
     ngx_int_t                      (*process_header)(ngx_http_request_t *r);
+    /* 打断请求 */
     void                           (*abort_request)(ngx_http_request_t *r);
+    /* 请求结束时调用 */
     void                           (*finalize_request)(ngx_http_request_t *r,
                                          ngx_int_t rc);
+    /* 上游响应需要重定向时 */
     ngx_int_t                      (*rewrite_redirect)(ngx_http_request_t *r,
                                          ngx_table_elt_t *h, size_t prefix);
     ngx_int_t                      (*rewrite_cookie)(ngx_http_request_t *r,
@@ -388,7 +396,7 @@ struct ngx_http_upstream_s {
     unsigned                         cache_status:3;
 #endif
 
-    unsigned                         buffering:1;
+    unsigned                         buffering:1;   /* 转发响应是否开启更大内存或磁盘缓存上游文件 */
     unsigned                         keepalive:1;
     unsigned                         upgrade:1;
     unsigned                         error:1;

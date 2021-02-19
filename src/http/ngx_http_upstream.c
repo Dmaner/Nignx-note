@@ -1263,8 +1263,8 @@ ngx_http_upstream_handler(ngx_event_t *ev)
     c = ev->data;
     r = c->data;
 
-    u = r->upstream;
-    c = r->connection;
+    u = r->upstream;        /* 获得上游服务器连接 */
+    c = r->connection;      /* 获得客户端连接 */
 
     ngx_http_set_log_request(c->log, r);
 

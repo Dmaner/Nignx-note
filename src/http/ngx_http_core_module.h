@@ -106,21 +106,17 @@ typedef struct {
 
 /* HTTP请求处理的十一个阶段 */
 typedef enum {
-    NGX_HTTP_POST_READ_PHASE = 0,   /* 在接收到完整的HTTP头部后处理的HTTP阶段 */
-    NGX_HTTP_SERVER_REWRITE_PHASE,  /* 在将请求的URI与location表达式匹配前，修改请求的URI */
-    NGX_HTTP_FIND_CONFIG_PHASE,     /* 根据URI寻找匹配的表达式 */
-    NGX_HTTP_REWRITE_PHASE,         /* 在NGX_HTTP_FIND_CONFIG_PHASE阶段寻找到匹配的location之后再修改请求的URI */
-    NGX_HTTP_POST_REWRITE_PHASE,    /* 这一阶段是用于在rewrite重写URL后，防止错误的nginx.conf配置导致死循环 */
-    NGX_HTTP_PREACCESS_PHASE,       /* 表示在处理NGX_HTTP_ACCESS_PHASE阶段决定请求的访问权限前，HTTP模块可以介入的处理阶段 */
-    NGX_HTTP_ACCESS_PHASE,          /* 这个阶段用于让HTTP模块判断是否允许这个请求访问Nginx服务器 */
-    NGX_HTTP_POST_ACCESS_PHASE,     /* 在NGX_HTTP_ACCESS_PHASE阶段中，当HTTP模块的handler处理函数返回不允许访问的错误码时，
-                                     * 这里将负责向用户发送拒绝服务的错误响应 
-                                     */
-    NGX_HTTP_PRECONTENT_PHASE,      /* 当HTTP请求访问静态文件资源时，try_files配置项可以使这个请求顺序地访问多个静态文件资源，
-                                     * 如果某一次访问失败，则继续访问try_files中指定的下一个静态资源 
-                                     */
-    NGX_HTTP_CONTENT_PHASE,         /* 用于处理HTTP请求内容的阶段，这是大部分HTTP模块最愿意介入的阶段 */
-    NGX_HTTP_LOG_PHASE              /* 处理完请求后记录日志的阶段 */
+    NGX_HTTP_POST_READ_PHASE = 0,   /* 读取请求内容阶段 */
+    NGX_HTTP_SERVER_REWRITE_PHASE,  /* Server请求地址重写阶段 *//
+    NGX_HTTP_FIND_CONFIG_PHASE,     /* 配置查找阶段 */
+    NGX_HTTP_REWRITE_PHASE,         /* Location请求地址重写阶段 */
+    NGX_HTTP_POST_REWRITE_PHASE,    /* 请求地址重写提交阶段*/
+    NGX_HTTP_PREACCESS_PHASE,       /* 访问权限检查准备阶段 */
+    NGX_HTTP_ACCESS_PHASE,          /* 访问权限检查阶段 */
+    NGX_HTTP_POST_ACCESS_PHASE,     /* 访问权限检查提交阶段 */
+    NGX_HTTP_PRECONTENT_PHASE,      /* 配置项 try_files 处理阶段 */
+    NGX_HTTP_CONTENT_PHASE,         /* 内容产生阶段 */
+    NGX_HTTP_LOG_PHASE              /* 日志模块处理阶段 */
 } ngx_http_phases;
 
 typedef struct ngx_http_phase_handler_s  ngx_http_phase_handler_t;
