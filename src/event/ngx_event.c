@@ -59,16 +59,27 @@ ngx_int_t             ngx_accept_disabled;
 
 #if (NGX_STAT_STUB)
 
+/* 成功建立TCP数 */
 static ngx_atomic_t   ngx_stat_accepted0;
 ngx_atomic_t         *ngx_stat_accepted = &ngx_stat_accepted0;
+
+/* 初始化读写事件的连接数 */
 static ngx_atomic_t   ngx_stat_handled0;
 ngx_atomic_t         *ngx_stat_handled = &ngx_stat_handled0;
+
+/* 由HTTP模块处理过的连接数 */
 static ngx_atomic_t   ngx_stat_requests0;
 ngx_atomic_t         *ngx_stat_requests = &ngx_stat_requests0;
+
+/* ngx_connection_t对象的活跃连接数 */
 static ngx_atomic_t   ngx_stat_active0;
 ngx_atomic_t         *ngx_stat_active = &ngx_stat_active0;
+
+/* 正在接受TCP流的连接数 */
 static ngx_atomic_t   ngx_stat_reading0;
 ngx_atomic_t         *ngx_stat_reading = &ngx_stat_reading0;
+
+/* 正在发送TCP流的连接数 */
 static ngx_atomic_t   ngx_stat_writing0;
 ngx_atomic_t         *ngx_stat_writing = &ngx_stat_writing0;
 static ngx_atomic_t   ngx_stat_waiting0;

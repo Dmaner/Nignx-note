@@ -42,8 +42,8 @@ ngx_atomic_cmp_set(ngx_atomic_t *lock, ngx_atomic_uint_t old,
 
     __asm__ volatile (
 
-         NGX_SMP_LOCK
-    "    cmpxchgl  %3, %1;   "
+         NGX_SMP_LOCK           /* 多核架构锁住总线 */
+    "    cmpxchgl  %3, %1;   "  /* 比较赋值操作 */
     "    sete      %0;       "
 
     : "=a" (res) : "m" (*lock), "a" (old), "r" (set) : "cc", "memory");

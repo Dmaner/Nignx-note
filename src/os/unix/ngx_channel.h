@@ -13,12 +13,12 @@
 #include <ngx_core.h>
 #include <ngx_event.h>
 
-
+/* master父进程和worker子进程同行方式 */
 typedef struct {
-    ngx_uint_t  command;
-    ngx_pid_t   pid;
-    ngx_int_t   slot;
-    ngx_fd_t    fd;
+    ngx_uint_t  command;    /* 传递TCP消息中的命令 */
+    ngx_pid_t   pid;        /* 进程ID */
+    ngx_int_t   slot;       /* 发送命令在ngx_process进程数组的序号 */
+    ngx_fd_t    fd;         /* 套接字句柄 */
 } ngx_channel_t;
 
 

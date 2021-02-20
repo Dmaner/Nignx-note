@@ -11,6 +11,7 @@
 
 #if (NGX_HAVE_MAP_ANON)
 
+/* 分配共享内存 */
 ngx_int_t
 ngx_shm_alloc(ngx_shm_t *shm)
 {
@@ -27,7 +28,7 @@ ngx_shm_alloc(ngx_shm_t *shm)
     return NGX_OK;
 }
 
-
+/* 释放共享内存 */
 void
 ngx_shm_free(ngx_shm_t *shm)
 {

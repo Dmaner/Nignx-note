@@ -60,8 +60,11 @@ typedef struct {
 
 
 void ngx_slab_sizes_init(void);
-void ngx_slab_init(ngx_slab_pool_t *pool);
+/* 初始化共享内存 */
+void ngx_slab_init(ngx_slab_pool_t *pool);     
+/* 加锁的内存分配 */ 
 void *ngx_slab_alloc(ngx_slab_pool_t *pool, size_t size);
+/* 不加锁的内存分配 */
 void *ngx_slab_alloc_locked(ngx_slab_pool_t *pool, size_t size);
 void *ngx_slab_calloc(ngx_slab_pool_t *pool, size_t size);
 void *ngx_slab_calloc_locked(ngx_slab_pool_t *pool, size_t size);

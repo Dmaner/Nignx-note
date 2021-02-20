@@ -12,9 +12,10 @@
 
 
 typedef struct {
-    int     signo;
-    char   *signame;
-    char   *name;
+    int     signo;      /* 信号 */
+    char   *signame;    /* 信号名 */
+    char   *name;       /* Nginx命令 */
+    /* 回调函数 */
     void  (*handler)(int signo, siginfo_t *siginfo, void *ucontext);
 } ngx_signal_t;
 
